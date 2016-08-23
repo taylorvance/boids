@@ -65,6 +65,9 @@ Boid.prototype.step = function(boids, dt) {
 	//this.wrap();
 
 	this.position = this.position.add(this.velocity.scale(dt));
+	if(this.name == 'red') {
+		this.position = this.position.add(this.velocity.scale(dt));
+	}
 }
 Boid.prototype.flock = function(neighbors) {
 	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
@@ -105,6 +108,7 @@ Boid.prototype.separate = function(neighbors) {
 
 	neighbors.forEach(function(boid){
 		var d = this.position.distance(boid.position);
+		if(boid.name == 'red') v = v.add(this.position.sub(boid.position).normalize().scale(100 / d));
 		if(d < ELBOW_ROOM) {
 			v = v.add(this.position.sub(boid.position).normalize().scale(1 / d));
 			count++;
@@ -192,6 +196,7 @@ function render() {
 
 	boids.forEach(function(boid){
 		ctx.fillStyle = '#543D5E'
+		if(boid.name == 'red') ctx.fillStyle = '#f00';
 		ctx.fillRect(boid.position.x, boid.position.y, 2, 2)
 	});
 }
@@ -224,6 +229,24 @@ function tick() {
 	});
 
 	render();
+}
+
+function more_boids() {
+	for(var i = 0; i < 50; i++) {
+		boids.push(new Boid({
+			position: new Vector(i*canvas.width/50, canvas.height),
+			velocity: new Vector(0, -MAX_SPEED)
+		}));
+	}
+}
+function spawn_red() {
+	var red = new Boid({
+		position: new Vector(Math.random() * (x_max - x_min) + x_min, Math.random() * (y_max - y_min) + y_min),
+		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
+	});
+	red.name = 'red';
+	boids.push(red);
+	console.log(red);
 }
 
 var lastUpdate = Date.now();

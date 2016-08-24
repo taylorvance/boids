@@ -53,7 +53,7 @@ function Boid(opts) {
 	this.position = opts.position || new Vector;
 	this.velocity = opts.velocity || new Vector;
 }
-Boid.prototype.step = function(boids, dt) {
+Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
 
 	var neighbors = this.neighbors(boids);
@@ -229,7 +229,7 @@ function tick() {
 	lastUpdate = now;
 
 	boids.forEach(function(boid){
-		boid.step(boids, dt);
+		boid.tick(boids, dt);
 	});
 
 	render();

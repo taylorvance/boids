@@ -1,14 +1,14 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 4;
+var SEPARATION_WEIGHT = 5;
 var ALIGNMENT_WEIGHT = 5;
-var COHESION_WEIGHT = 3;
-var BOUND_WEIGHT = 2;
+var COHESION_WEIGHT = 5;
+var BOUND_WEIGHT = 9;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
-var MAX_ACCELERATION = 3;
 var MAX_SPEED = 30;
+var MAX_ACCELERATION = 3;
 var FPS = 30;
 var NUM_BOIDS = 100;
 
@@ -58,21 +58,23 @@ Boid.prototype.tick = function(boids, dt) {
 
 	var neighbors = this.neighbors(boids);
 
-	//.make these return a vector instead of changing the boid's velocity
-	this.flock(neighbors);
-	this.bound();
+	var acc = this.flock(neighbors);
+	acc = acc.add(this.bound());
 	//this.jitter();
 	//this.wrap();
 
+	acc = acc.limit(MAX_ACCELERATION);
+
+	this.velocity = this.velocity.add(acc).limit(MAX_SPEED);
+
 	this.position = this.position.add(this.velocity.scale(dt));
-	if(this.name == 'red') {
-		this.position = this.position.add(this.velocity.scale(dt));
-	}
 }
 Boid.prototype.flock = function(neighbors) {
-	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
-	var alignment = this.align(neighbors).scale(ALIGNMENT_WEIGHT);
-	var cohesion = this.cohere(neighbors).scale(COHESION_WEIGHT);
+	var separation = this.separate(neighbors);
+	var alignment = this.align(neighbors);
+	var cohesion = this.cohere(neighbors);
+
+	return separation.add(alignment).add(cohesion);
 
 	var acceleration = separation.add(alignment).add(cohesion);
 	acceleration = acceleration.limit(MAX_ACCELERATION);
@@ -108,44 +110,39 @@ Boid.prototype.separate = function(neighbors) {
 
 	neighbors.forEach(function(boid){
 		var d = this.position.distance(boid.position);
-		if(boid.name == 'red') v = v.add(this.position.sub(boid.position).normalize().scale(100 / d));
 		if(d < ELBOW_ROOM) {
-			v = v.add(this.position.sub(boid.position).normalize().scale(1 / d));
+			v = v.add(this.position.sub(boid.position)).scale(Math.pow(ELBOW_ROOM - d, 2));
 			count++;
-			if(false && this.name == 'red' && boid.name != 'red') {
-				var idx = boids.indexOf(boid);
-				boids.splice(idx, 1);
-			}
 		}
 	}, this);
 
-	if(count > 0) {
-		v = v.scale(1 / count);
-		v = v.normalize().scale(MAX_SPEED).sub(this.velocity);
-	}
+	//if(count > 0) v = v.scale(1 / count);
 
-	return v;
+	return v.scale(SEPARATION_WEIGHT);
 }
 Boid.prototype.align = function(neighbors) {
 	var v = new Vector;
-	if(neighbors.length == 0) return v;
 
 	neighbors.forEach(function(boid){
 		v = v.add(boid.velocity);
 	}, this);
 
-	return v.scale(1 / neighbors.length);
+	if(neighbors.length > 0) v = v.scale(1 / neighbors.length);
+
+	return v.scale(ALIGNMENT_WEIGHT);
 }
 Boid.prototype.cohere = function(neighbors) {
-	var p = new Vector;
-	if(neighbors.length == 0) return p;
+	var v = new Vector;
 
 	neighbors.forEach(function(boid){
-		p = p.add(boid.position);
+		v = v.add(boid.position.sub(this.position));
 	}, this);
-	p = p.scale(1 / neighbors.length);
 
-	return p.sub(this.position).scale(1 / 100);
+	if(neighbors.length > 0) v = v.scale(1 / neighbors.length);
+
+	return v.scale(COHESION_WEIGHT);
+
+	return v.sub(this.position).scale(1 / 100);
 }
 Boid.prototype.bound = function() {
 	var x_min = 50;
@@ -154,11 +151,13 @@ Boid.prototype.bound = function() {
 	var y_max = canvas.height - y_min;
 	var v = new Vector;
 
-	if(this.position.x < x_min) v.x = 1;
-	else if(this.position.x > x_max) v.x = -1;
+	if(this.position.x < x_min) v.x = x_min - this.position.x;
+	else if(this.position.x > x_max) v.x = x_max - this.position.x;
 
-	if(this.position.y < y_min) v.y = 1;
-	else if(this.position.y > y_max) v.y = -1;
+	if(this.position.y < y_min) v.y = y_min - this.position.y;
+	else if(this.position.y > y_max) v.y = y_max - this.position.y;
+
+	return v.scale(BOUND_WEIGHT);
 
 	this.velocity = this.velocity.add(v.scale(BOUND_WEIGHT)).limit(MAX_SPEED);
 }
@@ -200,7 +199,6 @@ function render() {
 
 	boids.forEach(function(boid){
 		ctx.fillStyle = '#543D5E'
-		if(boid.name == 'red') ctx.fillStyle = '#f00';
 		ctx.fillRect(boid.position.x, boid.position.y, 2, 2)
 	});
 }
@@ -242,15 +240,6 @@ function more_boids() {
 			velocity: new Vector(0, -MAX_SPEED)
 		}));
 	}
-}
-function spawn_red() {
-	var red = new Boid({
-		position: new Vector(Math.random() * (x_max - x_min) + x_min, Math.random() * (y_max - y_min) + y_min),
-		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
-	});
-	red.name = 'red';
-	boids.push(red);
-	console.log(red);
 }
 
 var lastUpdate = Date.now();

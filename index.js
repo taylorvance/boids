@@ -112,6 +112,10 @@ Boid.prototype.separate = function(neighbors) {
 		if(d < ELBOW_ROOM) {
 			v = v.add(this.position.sub(boid.position).normalize().scale(1 / d));
 			count++;
+			if(false && this.name == 'red' && boid.name != 'red') {
+				var idx = boids.indexOf(boid);
+				boids.splice(idx, 1);
+			}
 		}
 	}, this);
 

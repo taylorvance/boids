@@ -1,10 +1,10 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 5;
+var SEPARATION_WEIGHT = 2;
 var ALIGNMENT_WEIGHT = 5;
-var COHESION_WEIGHT = 5;
-var BOUND_WEIGHT = 9;
+var COHESION_WEIGHT = 4;
+var BOUND_WEIGHT = 5;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
 var MAX_SPEED = 30;
@@ -111,7 +111,7 @@ Boid.prototype.separate = function(neighbors) {
 	neighbors.forEach(function(boid){
 		var d = this.position.distance(boid.position);
 		if(d < ELBOW_ROOM) {
-			v = v.add(this.position.sub(boid.position)).scale(Math.pow(ELBOW_ROOM - d, 2));
+			v = v.add(this.position.sub(boid.position).scale(Math.pow(ELBOW_ROOM - d, 2)));
 			count++;
 		}
 	}, this);

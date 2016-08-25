@@ -1,9 +1,9 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 2;
-var ALIGNMENT_WEIGHT = 5;
-var COHESION_WEIGHT = 4;
+var SEPARATION_WEIGHT = 5;
+var ALIGNMENT_WEIGHT = 4;
+var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 5;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
@@ -50,6 +50,7 @@ Vector.prototype.distance = function(v) {
  * BOID
  */
 function Boid(opts) {
+	if(typeof opts === "undefined") opts = [];
 	this.position = opts.position || new Vector;
 	this.velocity = opts.velocity || new Vector;
 }
@@ -240,6 +241,23 @@ function more_boids() {
 			velocity: new Vector(0, -MAX_SPEED)
 		}));
 	}
+}
+
+function Fox() {
+	Boid.call(this);
+	this.asdf = 'hi';
+}
+Fox.prototype = new Boid;
+//Fox.prototype = Object.create(Boid.prototype);
+function spawn_fox() {
+	var fox = new Fox;
+	console.log(fox);
+	console.log(fox.constructor);
+	return;
+
+	var boid = new Boid;
+	boids.push(boid);
+	console.log(boid);
 }
 
 var lastUpdate = Date.now();

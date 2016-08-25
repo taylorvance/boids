@@ -8,7 +8,7 @@ var BOUND_WEIGHT = 5;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
 var MAX_SPEED = 30;
-var MAX_ACCELERATION = 3;
+var MAX_FORCE = 3;
 var FPS = 30;
 var NUM_BOIDS = 100;
 
@@ -64,7 +64,7 @@ Boid.prototype.tick = function(boids, dt) {
 	//this.jitter();
 	//this.wrap();
 
-	acc = acc.limit(MAX_ACCELERATION);
+	acc = acc.limit(MAX_FORCE);
 
 	this.velocity = this.velocity.add(acc).limit(MAX_SPEED);
 
@@ -78,7 +78,7 @@ Boid.prototype.flock = function(neighbors) {
 	return separation.add(alignment).add(cohesion);
 
 	var acceleration = separation.add(alignment).add(cohesion);
-	acceleration = acceleration.limit(MAX_ACCELERATION);
+	acceleration = acceleration.limit(MAX_FORCE);
 
 	this.velocity = this.velocity.add(acceleration).limit(MAX_SPEED);
 }
@@ -270,4 +270,4 @@ $("#config").append('BOUND_WEIGHT: <input type="number" id="BOUND_WEIGHT" value=
 $("#config").append('NEIGHBOR_RADIUS: <input type="number" id="NEIGHBOR_RADIUS" value="'+NEIGHBOR_RADIUS+'" onchange="NEIGHBOR_RADIUS=this.value"><br>');
 $("#config").append('ELBOW_ROOM: <input type="number" id="ELBOW_ROOM" value="'+ELBOW_ROOM+'" onchange="ELBOW_ROOM=this.value"><br>');
 $("#config").append('MAX_SPEED: <input type="number" id="MAX_SPEED" value="'+MAX_SPEED+'" onchange="MAX_SPEED=this.value"><br>');
-$("#config").append('MAX_ACCELERATION: <input type="number" id="MAX_ACCELERATION" value="'+MAX_ACCELERATION+'" onchange="MAX_ACCELERATION=this.value"><br>');
+$("#config").append('MAX_FORCE: <input type="number" id="MAX_FORCE" value="'+MAX_FORCE+'" onchange="MAX_FORCE=this.value"><br>');

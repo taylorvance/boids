@@ -9,7 +9,7 @@ var BOUND_WEIGHT = 1;
 var SEEK_WEIGHT = 20;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
-var MAX_SPEED = 40;
+var MAX_SPEED = 50;
 var MAX_FORCE = 2;
 var FPS = 30;
 var NUM_BOIDS = 50;
@@ -114,7 +114,7 @@ Boid.prototype.neighbors = function(boids) {
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
 				// Is it in its field of vision?
-				//if(Math.abs(this.velocity.angle(boid.position.sub(this.position))) < 0.78) {
+				//if(this.velocity.angle(boid.position.sub(this.position)) < Math.PI / 2) {
 					neighbors.push(boid);
 				//}
 			}
@@ -154,9 +154,8 @@ Boid.prototype.align = function(neighbors) {
 	}, this);
 
 	v = v.scale(1 / neighbors.length);
-	v = v.setMagnitude(this.max_speed);//.delete?
 
-	return this.steer(v);
+	return this.steer(this.position.add(v));
 }
 Boid.prototype.cohere = function(neighbors) {
 	var v = new Vector;

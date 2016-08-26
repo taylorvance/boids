@@ -2,16 +2,17 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 25;
-var ALIGNMENT_WEIGHT = 30;
-var COHESION_WEIGHT = 23;
+var SEPARATION_WEIGHT = 7;
+var ALIGNMENT_WEIGHT = 4;
+var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 1;
+var SEEK_WEIGHT = 20;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
-var MAX_SPEED = 30;
+var MAX_SPEED = 40;
 var MAX_FORCE = 2;
 var FPS = 30;
-var NUM_BOIDS = 100;
+var NUM_BOIDS = 50;
 
 
 
@@ -84,11 +85,10 @@ Boid.prototype.tick = function(boids, dt) {
 	var neighbors = this.neighbors(boids);
 
 	var acc = this.flock(neighbors);
+	//acc = acc.add(this.seek(mouse).scale(SEEK_WEIGHT));
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
-	acc = acc.limit(MAX_FORCE);
-
-	this.velocity = this.velocity.add(acc).limit(MAX_SPEED);
+	this.velocity = this.velocity.add(acc.limit(MAX_FORCE)).limit(MAX_SPEED);
 
 	this.position = this.position.add(this.velocity.scale(dt));
 	this.wrap();
@@ -251,9 +251,9 @@ function render() {
 				ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
 				ctx.fill();
 			});
-			var sep = boid.separate(neighbors).scale(SEPARATION_WEIGHT);
-			var ali = boid.align(neighbors).scale(ALIGNMENT_WEIGHT);
-			var coh = boid.cohere(neighbors).scale(COHESION_WEIGHT);
+			var sep = boid.separate(neighbors).scale(5 * SEPARATION_WEIGHT);
+			var ali = boid.align(neighbors).scale(5 * ALIGNMENT_WEIGHT);
+			var coh = boid.cohere(neighbors).scale(5 * COHESION_WEIGHT);
 			var acc = sep.add(ali).add(coh);
 			//velocity
 			ctx.strokeStyle = '#bbb';
@@ -379,6 +379,12 @@ function spawn_fox() {
 	var boid = new Boid;
 	boids.push(boid);
 	console.log(boid);
+}
+
+var mouse = new Vector;
+function mousemove(x, y) {
+	mouse.x = x;
+	mouse.y = y;
 }
 
 var lastUpdate = Date.now();

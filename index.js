@@ -2,7 +2,7 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 7;
+var SEPARATION_WEIGHT = 5;
 var ALIGNMENT_WEIGHT = 4;
 var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 1;
@@ -215,6 +215,19 @@ Boid.prototype.wrap = function() {
 	if(this.position.y < 0) this.position.y = canvas.height;
 	else if(this.position.y > canvas.height) this.position.y = 0;
 }
+Boid.prototype.draw = function() {
+	ctx.save();
+	ctx.translate(this.position.x, this.position.y);
+	ctx.rotate(this.velocity.angle2(new Vector(1, 0)));
+	ctx.moveTo(0, -5);
+	ctx.lineTo(2,2);
+	ctx.lineTo(-2,2);
+	ctx.lineTo(0,-5);
+	ctx.stroke();
+	ctx.fillStyle = '#543D5E';
+	ctx.fill();
+	ctx.restore();
+}
 
 
 
@@ -225,6 +238,72 @@ function Flock(opts) {
 }
 Flock.prototype.something = function() {
 	console.log('hi');
+}
+
+
+
+/**
+ * FOX
+ */
+function Fox(opts) {
+	Boid.call(this, opts);
+	this.name = 'red';
+}
+Fox.prototype = new Boid;
+Fox.prototype.draw = function() {
+	var neighbors = this.neighbors(boids);
+	neighbors.forEach(function(boid){
+		ctx.beginPath();
+		ctx.arc(boid.position.x, boid.position.y, 5, 0, 2 * Math.PI, false);
+		ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
+		ctx.fill();
+	});
+	var sep = this.separate(neighbors).scale(5 * SEPARATION_WEIGHT);
+	var ali = this.align(neighbors).scale(5 * ALIGNMENT_WEIGHT);
+	var coh = this.cohere(neighbors).scale(5 * COHESION_WEIGHT);
+	var acc = sep.add(ali).add(coh);
+	//velocity
+	ctx.strokeStyle = '#bbb';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + this.velocity.x, this.position.y + this.velocity.y);
+	ctx.stroke();
+	//sep
+	ctx.strokeStyle = '#f00';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + sep.x, this.position.y + sep.y);
+	ctx.stroke();
+	//align
+	ctx.strokeStyle = '#0f0';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + ali.x, this.position.y + ali.y);
+	ctx.stroke();
+	//cohere
+	ctx.strokeStyle = '#00f';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + coh.x, this.position.y + coh.y);
+	ctx.stroke();
+	//acceleration
+	ctx.strokeStyle = '#000';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + acc.x, this.position.y + acc.y);
+	ctx.stroke();
+	//boid
+	ctx.save(); // saves the coordinate system
+	ctx.translate(this.position.x, this.position.y); // now the position (0,0) is found at (250,50)
+	ctx.rotate(this.velocity.angle2(new Vector(1, 0))); // rotate around the start point of your line
+	ctx.moveTo(0, -8);
+	ctx.lineTo(5,5);
+	ctx.lineTo(-5,5);
+	ctx.lineTo(0,-8);
+	ctx.stroke();
+	ctx.fillStyle = '#f00';
+	ctx.fill();
+	ctx.restore();
 }
 
 
@@ -242,73 +321,7 @@ function render() {
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 	boids.forEach(function(boid){
-		if(boid.name == 'red') {
-			var neighbors = boid.neighbors(boids);
-			neighbors.forEach(function(boid){
-				ctx.beginPath();
-				ctx.arc(boid.position.x, boid.position.y, 5, 0, 2 * Math.PI, false);
-				ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
-				ctx.fill();
-			});
-			var sep = boid.separate(neighbors).scale(5 * SEPARATION_WEIGHT);
-			var ali = boid.align(neighbors).scale(5 * ALIGNMENT_WEIGHT);
-			var coh = boid.cohere(neighbors).scale(5 * COHESION_WEIGHT);
-			var acc = sep.add(ali).add(coh);
-			//velocity
-			ctx.strokeStyle = '#bbb';
-			ctx.beginPath();
-			ctx.moveTo(boid.position.x, boid.position.y);
-			ctx.lineTo(boid.position.x + boid.velocity.x, boid.position.y + boid.velocity.y);
-			ctx.stroke();
-			//sep
-			ctx.strokeStyle = '#f00';
-			ctx.beginPath();
-			ctx.moveTo(boid.position.x, boid.position.y);
-			ctx.lineTo(boid.position.x + sep.x, boid.position.y + sep.y);
-			ctx.stroke();
-			//align
-			ctx.strokeStyle = '#0f0';
-			ctx.beginPath();
-			ctx.moveTo(boid.position.x, boid.position.y);
-			ctx.lineTo(boid.position.x + ali.x, boid.position.y + ali.y);
-			ctx.stroke();
-			//cohere
-			ctx.strokeStyle = '#00f';
-			ctx.beginPath();
-			ctx.moveTo(boid.position.x, boid.position.y);
-			ctx.lineTo(boid.position.x + coh.x, boid.position.y + coh.y);
-			ctx.stroke();
-			//acceleration
-			ctx.strokeStyle = '#000';
-			ctx.beginPath();
-			ctx.moveTo(boid.position.x, boid.position.y);
-			ctx.lineTo(boid.position.x + acc.x, boid.position.y + acc.y);
-			ctx.stroke();
-			//boid
-			ctx.save(); // saves the coordinate system
-			ctx.translate(boid.position.x,boid.position.y); // now the position (0,0) is found at (250,50)
-			ctx.rotate(boid.velocity.angle2(new Vector(1, 0))); // rotate around the start point of your line
-			ctx.moveTo(0, -8);
-			ctx.lineTo(5,5);
-			ctx.lineTo(-5,5);
-			ctx.lineTo(0,-8);
-			ctx.stroke();
-			ctx.fillStyle = '#f00';
-      ctx.fill();
-			ctx.restore();
-		} else {
-			ctx.save();
-			ctx.translate(boid.position.x, boid.position.y);
-			ctx.rotate(boid.velocity.angle2(new Vector(1, 0)));
-			ctx.moveTo(0, -5);
-			ctx.lineTo(2,2);
-			ctx.lineTo(-2,2);
-			ctx.lineTo(0,-5);
-			ctx.stroke();
-			ctx.fillStyle = '#543D5E';
-      ctx.fill();
-			ctx.restore();
-		}
+		boid.draw();
 	});
 }
 
@@ -328,11 +341,7 @@ for(var i = 0; i < NUM_BOIDS; i++) {
 		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
 	}));
 }
-boids.push(new Boid({
-	position: new Vector(Math.random() * (x_max - x_min) + x_min, Math.random() * (y_max - y_min) + y_min),
-	velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED),
-	name: 'red'
-}));
+spawn_fox();
 console.log(boids);
 
 function tick() {
@@ -362,22 +371,11 @@ function spawn_red() {
 		name: 'red'
 	}));
 }
-
-function Fox() {
-	Boid.call(this);
-	this.asdf = 'hi';
-}
-Fox.prototype = new Boid;
-//Fox.prototype = Object.create(Boid.prototype);
 function spawn_fox() {
-	var fox = new Fox;
-	console.log(fox);
-	console.log(fox.constructor);
-	return;
-
-	var boid = new Boid;
-	boids.push(boid);
-	console.log(boid);
+	boids.push(new Fox({
+		position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height),
+		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
+	}));
 }
 
 var mouse = new Vector;

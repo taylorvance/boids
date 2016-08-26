@@ -2,14 +2,14 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 5;
-var ALIGNMENT_WEIGHT = 4;
-var COHESION_WEIGHT = 3;
+var SEPARATION_WEIGHT = 25;
+var ALIGNMENT_WEIGHT = 30;
+var COHESION_WEIGHT = 23;
 var BOUND_WEIGHT = 1;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
 var MAX_SPEED = 30;
-var MAX_FORCE = 3;
+var MAX_FORCE = 2;
 var FPS = 30;
 var NUM_BOIDS = 100;
 
@@ -70,6 +70,8 @@ function Boid(opts) {
 
 	this.max_speed = opts.max_speed || MAX_SPEED;
 	this.max_force = opts.max_force || MAX_FORCE;
+
+	this.name = opts.name;
 }
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
@@ -77,14 +79,14 @@ Boid.prototype.tick = function(boids, dt) {
 	var neighbors = this.neighbors(boids);
 
 	var acc = this.flock(neighbors);
-	acc = acc.add(this.bound());
+	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
 	acc = acc.limit(MAX_FORCE);
 
 	this.velocity = this.velocity.add(acc).limit(MAX_SPEED);
 
 	this.position = this.position.add(this.velocity.scale(dt));
-	//this.wrap();
+	this.wrap();
 }
 Boid.prototype.flock = function(neighbors) {
 	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
@@ -144,7 +146,7 @@ Boid.prototype.align = function(neighbors) {
 	}, this);
 
 	v = v.scale(1 / neighbors.length);
-	v = v.setMagnitude(this.max_speed);
+	v = v.setMagnitude(this.max_speed);//.delete?
 
 	return this.steer(v);
 }
@@ -164,14 +166,10 @@ Boid.prototype.steer = function(desired) {
 }
 Boid.prototype.seek = function(target) {
 	var desired = target.sub(this.position);
-	desired = desired.normalize().scale(this.max_speed);
-
 	return this.steer(desired);
 }
 Boid.prototype.flee = function(target) {
 	var desired = this.position.sub(target);
-	desired = desired.normalize().scale(this.max_speed);
-
 	return this.steer(desired);
 }
 Boid.prototype.arrive = function(target) {
@@ -188,11 +186,13 @@ Boid.prototype.arrive = function(target) {
 	return this.steer(desired);
 }
 Boid.prototype.bound = function() {
+	var v = new Vector;
+
+	//.change these
 	var x_min = 50;
 	var x_max = canvas.width - x_min;
 	var y_min = 50;
 	var y_max = canvas.height - y_min;
-	var v = new Vector;
 
 	if(this.position.x < x_min) v.x = x_min - this.position.x;
 	else if(this.position.x > x_max) v.x = x_max - this.position.x;
@@ -200,9 +200,7 @@ Boid.prototype.bound = function() {
 	if(this.position.y < y_min) v.y = y_min - this.position.y;
 	else if(this.position.y > y_max) v.y = y_max - this.position.y;
 
-	return v.scale(BOUND_WEIGHT);
-
-	this.velocity = this.velocity.add(v.scale(BOUND_WEIGHT)).limit(MAX_SPEED);
+	return v;
 }
 Boid.prototype.wrap = function() {
 	if(this.position.x < 0) this.position.x = canvas.width;
@@ -232,13 +230,64 @@ var ctx = canvas.getContext('2d');
 canvas.width = 400
 canvas.height = 400
 function render() {
-	ctx.fillStyle = 'rgba(255,241,235,0.25)' // '#FFF1EB'
-	//ctx.fillStyle = '#FFF1EB'
+	//ctx.fillStyle = 'rgba(255,241,235,0.25)' // '#FFF1EB'
+	ctx.fillStyle = '#FFF1EB'
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 	boids.forEach(function(boid){
-		ctx.fillStyle = '#543D5E'
-		ctx.fillRect(boid.position.x, boid.position.y, 2, 2)
+		if(boid.name == 'red') {
+			var neighbors = boid.neighbors(boids);
+			neighbors.forEach(function(boid){
+				ctx.beginPath();
+				ctx.arc(boid.position.x, boid.position.y, 4, 0, 2 * Math.PI, false);
+				ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
+				ctx.fill();
+			});
+			var sep = boid.separate(neighbors).scale(SEPARATION_WEIGHT);
+			var ali = boid.align(neighbors).scale(ALIGNMENT_WEIGHT);
+			var coh = boid.cohere(neighbors).scale(COHESION_WEIGHT);
+			var acc = sep.add(ali).add(coh);
+			//velocity
+			ctx.strokeStyle = '#ccc';
+			ctx.beginPath();
+			ctx.moveTo(boid.position.x, boid.position.y);
+			ctx.lineTo(boid.position.x + boid.velocity.x, boid.position.y + boid.velocity.y);
+			ctx.stroke();
+			//sep
+			ctx.strokeStyle = '#f00';
+			ctx.beginPath();
+			ctx.moveTo(boid.position.x, boid.position.y);
+			ctx.lineTo(boid.position.x + sep.x, boid.position.y + sep.y);
+			ctx.stroke();
+			//align
+			ctx.strokeStyle = '#0f0';
+			ctx.beginPath();
+			ctx.moveTo(boid.position.x, boid.position.y);
+			ctx.lineTo(boid.position.x + ali.x, boid.position.y + ali.y);
+			ctx.stroke();
+			//cohere
+			ctx.strokeStyle = '#00f';
+			ctx.beginPath();
+			ctx.moveTo(boid.position.x, boid.position.y);
+			ctx.lineTo(boid.position.x + coh.x, boid.position.y + coh.y);
+			ctx.stroke();
+			//acceleration
+			ctx.strokeStyle = '#000';
+			ctx.beginPath();
+			ctx.moveTo(boid.position.x, boid.position.y);
+			ctx.lineTo(boid.position.x + acc.x, boid.position.y + acc.y);
+			ctx.stroke();
+			//boid
+			ctx.beginPath();
+      ctx.arc(boid.position.x, boid.position.y, 3, 0, 2 * Math.PI, false);
+			ctx.fillStyle = '#f00';
+      ctx.fill();
+		} else {
+			ctx.beginPath();
+      ctx.arc(boid.position.x, boid.position.y, 1.5, 0, 2 * Math.PI, false);
+			ctx.fillStyle = '#543D5E';
+      ctx.fill();
+		}
 	});
 }
 
@@ -258,6 +307,11 @@ for(var i = 0; i < NUM_BOIDS; i++) {
 		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
 	}));
 }
+boids.push(new Boid({
+	position: new Vector(Math.random() * (x_max - x_min) + x_min, Math.random() * (y_max - y_min) + y_min),
+	velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED),
+	name: 'red'
+}));
 console.log(boids);
 
 function tick() {
@@ -279,6 +333,13 @@ function more_boids() {
 			velocity: new Vector(0, -MAX_SPEED)
 		}));
 	}
+}
+function spawn_red() {
+	boids.push(new Boid({
+		position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height),
+		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED),
+		name: 'red'
+	}));
 }
 
 function Fox() {
@@ -307,5 +368,3 @@ $("#config").append('COHESION_WEIGHT: <input type="number" id="COHESION_WEIGHT" 
 $("#config").append('BOUND_WEIGHT: <input type="number" id="BOUND_WEIGHT" value="'+BOUND_WEIGHT+'" onchange="BOUND_WEIGHT=this.value"><br>');
 $("#config").append('NEIGHBOR_RADIUS: <input type="number" id="NEIGHBOR_RADIUS" value="'+NEIGHBOR_RADIUS+'" onchange="NEIGHBOR_RADIUS=this.value"><br>');
 $("#config").append('ELBOW_ROOM: <input type="number" id="ELBOW_ROOM" value="'+ELBOW_ROOM+'" onchange="ELBOW_ROOM=this.value"><br>');
-$("#config").append('MAX_SPEED: <input type="number" id="MAX_SPEED" value="'+MAX_SPEED+'" onchange="MAX_SPEED=this.value"><br>');
-$("#config").append('MAX_FORCE: <input type="number" id="MAX_FORCE" value="'+MAX_FORCE+'" onchange="MAX_FORCE=this.value"><br>');

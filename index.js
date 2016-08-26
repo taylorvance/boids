@@ -1,10 +1,11 @@
+//http://natureofcode.com/book/chapter-6-autonomous-agents/
 /**
  * CONFIG
  */
 var SEPARATION_WEIGHT = 5;
 var ALIGNMENT_WEIGHT = 4;
 var COHESION_WEIGHT = 3;
-var BOUND_WEIGHT = 5;
+var BOUND_WEIGHT = 1;
 var NEIGHBOR_RADIUS = 40;
 var ELBOW_ROOM = 15;
 var MAX_SPEED = 30;
@@ -36,12 +37,24 @@ Vector.prototype.magnitude = function() {
 Vector.prototype.normalize = function() {
 	return this.scale(1 / this.magnitude());
 }
+Vector.prototype.setMagnitude = function(n) {
+	return this.normalize().scale(n);
+}
 Vector.prototype.limit = function(n) {
-	if(this.magnitude() > n) return this.normalize().scale(n);
+	if(this.magnitude() > n) return this.setMagnitude(n);
 	return this;
 }
 Vector.prototype.distance = function(v) {
 	return v.sub(this).magnitude();
+}
+Vector.prototype.dot = function(v) {
+	return new Vector(this.x * v.x, this.y * v.y);
+}
+Vector.prototype.angle = function(v) {
+	return Math.acos(this.dot(v) / (this.magnitude() * v.magnitude()));
+}
+Vector.prototype.scalarProjection = function(v) {
+	return v.setMagnitude(this.dot(v));
 }
 
 
@@ -51,8 +64,12 @@ Vector.prototype.distance = function(v) {
  */
 function Boid(opts) {
 	if(typeof opts === "undefined") opts = [];
+
 	this.position = opts.position || new Vector;
 	this.velocity = opts.velocity || new Vector;
+
+	this.max_speed = opts.max_speed || MAX_SPEED;
+	this.max_force = opts.max_force || MAX_FORCE;
 }
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
@@ -61,26 +78,20 @@ Boid.prototype.tick = function(boids, dt) {
 
 	var acc = this.flock(neighbors);
 	acc = acc.add(this.bound());
-	//this.jitter();
-	//this.wrap();
 
 	acc = acc.limit(MAX_FORCE);
 
 	this.velocity = this.velocity.add(acc).limit(MAX_SPEED);
 
 	this.position = this.position.add(this.velocity.scale(dt));
+	//this.wrap();
 }
 Boid.prototype.flock = function(neighbors) {
-	var separation = this.separate(neighbors);
-	var alignment = this.align(neighbors);
-	var cohesion = this.cohere(neighbors);
+	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
+	var alignment = this.align(neighbors).scale(ALIGNMENT_WEIGHT);
+	var cohesion = this.cohere(neighbors).scale(COHESION_WEIGHT);
 
 	return separation.add(alignment).add(cohesion);
-
-	var acceleration = separation.add(alignment).add(cohesion);
-	acceleration = acceleration.limit(MAX_FORCE);
-
-	this.velocity = this.velocity.add(acceleration).limit(MAX_SPEED);
 }
 Boid.prototype.neighbors = function(boids) {
 	var neighbors = [];
@@ -112,38 +123,69 @@ Boid.prototype.separate = function(neighbors) {
 	neighbors.forEach(function(boid){
 		var d = this.position.distance(boid.position);
 		if(d < ELBOW_ROOM) {
-			v = v.add(this.position.sub(boid.position).scale(Math.pow(ELBOW_ROOM - d, 2)));
+			var away = this.position.sub(boid.position);
+			v = v.add(away.setMagnitude(ELBOW_ROOM - d));
 			count++;
 		}
 	}, this);
 
-	//if(count > 0) v = v.scale(1 / count);
+	if(count == 0) return v;
 
-	return v.scale(SEPARATION_WEIGHT);
+	v = v.scale(1 / count);
+	v = v.setMagnitude(this.max_speed);
+	return this.steer(v);
 }
 Boid.prototype.align = function(neighbors) {
 	var v = new Vector;
+	if(neighbors.length == 0) return v;
 
 	neighbors.forEach(function(boid){
 		v = v.add(boid.velocity);
 	}, this);
 
-	if(neighbors.length > 0) v = v.scale(1 / neighbors.length);
+	v = v.scale(1 / neighbors.length);
+	v = v.setMagnitude(this.max_speed);
 
-	return v.scale(ALIGNMENT_WEIGHT);
+	return this.steer(v);
 }
 Boid.prototype.cohere = function(neighbors) {
 	var v = new Vector;
+	if(neighbors.length == 0) return v;
 
 	neighbors.forEach(function(boid){
-		v = v.add(boid.position.sub(this.position));
+		v = v.add(boid.position);
 	}, this);
 
-	if(neighbors.length > 0) v = v.scale(1 / neighbors.length);
+	v = v.scale(1 / neighbors.length);
+	return this.seek(v);
+}
+Boid.prototype.steer = function(desired) {
+	return desired.sub(this.velocity).limit(this.max_force);
+}
+Boid.prototype.seek = function(target) {
+	var desired = target.sub(this.position);
+	desired = desired.normalize().scale(this.max_speed);
 
-	return v.scale(COHESION_WEIGHT);
+	return this.steer(desired);
+}
+Boid.prototype.flee = function(target) {
+	var desired = this.position.sub(target);
+	desired = desired.normalize().scale(this.max_speed);
 
-	return v.sub(this.position).scale(1 / 100);
+	return this.steer(desired);
+}
+Boid.prototype.arrive = function(target) {
+	var desired = target.sub(this.position);
+	var d = desired.magnitude();
+
+	var arbitrary = 50;//.
+	if(d < arbitrary) {
+		desired = desired.setMagnitude(d * this.max_speed / arbitrary);
+	} else {
+		desired = desired.setMagnitude(this.max_speed);
+	}
+
+	return this.steer(desired);
 }
 Boid.prototype.bound = function() {
 	var x_min = 50;
@@ -161,10 +203,6 @@ Boid.prototype.bound = function() {
 	return v.scale(BOUND_WEIGHT);
 
 	this.velocity = this.velocity.add(v.scale(BOUND_WEIGHT)).limit(MAX_SPEED);
-}
-Boid.prototype.jitter = function() {
-	var v = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
-	this.velocity = this.velocity.add(v.scale(5)).limit(MAX_SPEED);
 }
 Boid.prototype.wrap = function() {
 	if(this.position.x < 0) this.position.x = canvas.width;

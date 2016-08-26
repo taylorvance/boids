@@ -48,10 +48,15 @@ Vector.prototype.distance = function(v) {
 	return v.sub(this).magnitude();
 }
 Vector.prototype.dot = function(v) {
-	return new Vector(this.x * v.x, this.y * v.y);
+	return this.x * v.x + this.y * v.y;
 }
 Vector.prototype.angle = function(v) {
 	return Math.acos(this.dot(v) / (this.magnitude() * v.magnitude()));
+}
+Vector.prototype.angle2 = function(v) {
+	var dot = this.dot(v);
+	var det = this.x * v.y - this.y * v.x;
+	return Math.atan2(dot, det);
 }
 Vector.prototype.scalarProjection = function(v) {
 	return v.setMagnitude(this.dot(v));
@@ -108,7 +113,10 @@ Boid.prototype.neighbors = function(boids) {
 		{
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
-				neighbors.push(boid);
+				// Is it in its field of vision?
+				//if(Math.abs(this.velocity.angle(boid.position.sub(this.position))) < 0.78) {
+					neighbors.push(boid);
+				//}
 			}
 		}
 	}, this);
@@ -239,7 +247,7 @@ function render() {
 			var neighbors = boid.neighbors(boids);
 			neighbors.forEach(function(boid){
 				ctx.beginPath();
-				ctx.arc(boid.position.x, boid.position.y, 4, 0, 2 * Math.PI, false);
+				ctx.arc(boid.position.x, boid.position.y, 5, 0, 2 * Math.PI, false);
 				ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
 				ctx.fill();
 			});
@@ -248,7 +256,7 @@ function render() {
 			var coh = boid.cohere(neighbors).scale(COHESION_WEIGHT);
 			var acc = sep.add(ali).add(coh);
 			//velocity
-			ctx.strokeStyle = '#ccc';
+			ctx.strokeStyle = '#bbb';
 			ctx.beginPath();
 			ctx.moveTo(boid.position.x, boid.position.y);
 			ctx.lineTo(boid.position.x + boid.velocity.x, boid.position.y + boid.velocity.y);
@@ -278,15 +286,29 @@ function render() {
 			ctx.lineTo(boid.position.x + acc.x, boid.position.y + acc.y);
 			ctx.stroke();
 			//boid
-			ctx.beginPath();
-      ctx.arc(boid.position.x, boid.position.y, 3, 0, 2 * Math.PI, false);
+			ctx.save(); // saves the coordinate system
+			ctx.translate(boid.position.x,boid.position.y); // now the position (0,0) is found at (250,50)
+			ctx.rotate(boid.velocity.angle2(new Vector(1, 0))); // rotate around the start point of your line
+			ctx.moveTo(0, -8);
+			ctx.lineTo(5,5);
+			ctx.lineTo(-5,5);
+			ctx.lineTo(0,-8);
+			ctx.stroke();
 			ctx.fillStyle = '#f00';
       ctx.fill();
+			ctx.restore();
 		} else {
-			ctx.beginPath();
-      ctx.arc(boid.position.x, boid.position.y, 1.5, 0, 2 * Math.PI, false);
+			ctx.save();
+			ctx.translate(boid.position.x, boid.position.y);
+			ctx.rotate(boid.velocity.angle2(new Vector(1, 0)));
+			ctx.moveTo(0, -5);
+			ctx.lineTo(2,2);
+			ctx.lineTo(-2,2);
+			ctx.lineTo(0,-5);
+			ctx.stroke();
 			ctx.fillStyle = '#543D5E';
       ctx.fill();
+			ctx.restore();
 		}
 	});
 }

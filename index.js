@@ -243,14 +243,14 @@ Flock.prototype.something = function() {
 
 
 /**
- * FOX
+ * RED
  */
-function Fox(opts) {
+function Red(opts) {
 	Boid.call(this, opts);
 	this.name = 'red';
 }
-Fox.prototype = new Boid;
-Fox.prototype.draw = function() {
+Red.prototype = new Boid;
+Red.prototype.draw = function() {
 	var neighbors = this.neighbors(boids);
 	neighbors.forEach(function(boid){
 		ctx.beginPath();
@@ -344,7 +344,7 @@ for(var i = 0; i < NUM_BOIDS; i++) {
 		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
 	}));
 }
-spawn_fox();
+spawn_red();
 console.log(boids);
 
 function tick() {
@@ -368,16 +368,9 @@ function more_boids() {
 	}
 }
 function spawn_red() {
-	boids.push(new Boid({
+	boids.push(new Red({
 		position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height),
 		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED),
-		name: 'red'
-	}));
-}
-function spawn_fox() {
-	boids.push(new Fox({
-		position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height),
-		velocity: new Vector(Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED, Math.random() * (MAX_SPEED + MAX_SPEED) - MAX_SPEED)
 	}));
 }
 

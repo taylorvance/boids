@@ -6,9 +6,9 @@ var SEPARATION_WEIGHT = 5;
 var ALIGNMENT_WEIGHT = 4;
 var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 1;
-var SEEK_WEIGHT = 20;
-var NEIGHBOR_RADIUS = 40;
-var ELBOW_ROOM = 15;
+var SEEK_WEIGHT = 2;
+var NEIGHBOR_RADIUS = 50;
+var ELBOW_ROOM = 20;
 var MAX_SPEED = 50;
 var MAX_FORCE = 2;
 var FPS = 30;
@@ -82,18 +82,21 @@ function Boid(opts) {
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
 
-	var neighbors = this.neighbors(boids);
-
-	var acc = this.flock(neighbors);
+	var acc = new Vector;
+	acc = acc.add(this.flock(boids));
 	//acc = acc.add(this.seek(mouse).scale(SEEK_WEIGHT));
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
-	this.velocity = this.velocity.add(acc.limit(MAX_FORCE)).limit(MAX_SPEED);
+	acc = acc.limit(this.max_force);
+
+	this.velocity = this.velocity.add(acc).limit(this.max_speed);
 
 	this.position = this.position.add(this.velocity.scale(dt));
 	this.wrap();
 }
-Boid.prototype.flock = function(neighbors) {
+Boid.prototype.flock = function(boids) {
+	var neighbors = this.neighbors(boids);
+
 	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
 	var alignment = this.align(neighbors).scale(ALIGNMENT_WEIGHT);
 	var cohesion = this.cohere(neighbors).scale(COHESION_WEIGHT);
@@ -126,54 +129,61 @@ Boid.prototype.neighbors = function(boids) {
 /**
  * RULES
  */
+/** Move away from boids that are too close. */
 Boid.prototype.separate = function(neighbors) {
 	var v = new Vector;
 	var count = 0;
 
 	neighbors.forEach(function(boid){
 		var d = this.position.distance(boid.position);
+		// If it's too close for comfort...
 		if(d < ELBOW_ROOM) {
+			// find the vector pointing away from the boid...
 			var away = this.position.sub(boid.position);
-			v = v.add(away.setMagnitude(ELBOW_ROOM - d));
+			// ...and weight that vector by distance (smaller distance => greater repulsion).
+			v = v.add(away.setMagnitude(1 / d));
 			count++;
 		}
 	}, this);
 
 	if(count == 0) return v;
 
-	v = v.scale(1 / count);
-	v = v.setMagnitude(this.max_speed);
-	return this.steer(v);
+	// Steer away AFAP (as fast as possible).
+	return this.steer(v.setMagnitude(this.max_speed));
 }
+/** Find the average direction and steer in that direction. */
 Boid.prototype.align = function(neighbors) {
 	var v = new Vector;
 	if(neighbors.length == 0) return v;
 
 	neighbors.forEach(function(boid){
+		// Add the boid's current velocity.
 		v = v.add(boid.velocity);
 	}, this);
 
-	v = v.scale(1 / neighbors.length);
-
-	return this.steer(this.position.add(v));
+	// Steer in the average direction of neighbors AFAP.
+	return this.steer(v.setMagnitude(this.max_speed));
 }
+/** Find the center of mass and move toward it. */
 Boid.prototype.cohere = function(neighbors) {
 	var v = new Vector;
 	if(neighbors.length == 0) return v;
 
 	neighbors.forEach(function(boid){
+		// Add the boid's current position.
 		v = v.add(boid.position);
 	}, this);
 
+	// Add the boid's current position.
 	v = v.scale(1 / neighbors.length);
-	return this.seek(v);
+	return this.arrive(v);
 }
 Boid.prototype.steer = function(desired) {
 	return desired.sub(this.velocity).limit(this.max_force);
 }
 Boid.prototype.seek = function(target) {
 	var desired = target.sub(this.position);
-	return this.steer(desired);
+	return this.steer(desired.setMagnitude(this.max_speed));
 }
 Boid.prototype.flee = function(target) {
 	var desired = this.position.sub(target);

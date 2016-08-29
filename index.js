@@ -254,8 +254,8 @@ Red.prototype.draw = function() {
 	var neighbors = this.neighbors(boids);
 	neighbors.forEach(function(boid){
 		ctx.beginPath();
-		ctx.arc(boid.position.x, boid.position.y, 5, 0, 2 * Math.PI, false);
-		ctx.fillStyle = 'rgba(255,0,0,0.3)' // '#FFF1EB'
+		ctx.arc(boid.position.x, boid.position.y, 7, 0, 2 * Math.PI, false);
+		ctx.fillStyle = 'rgba(255,0,0,0.3)';
 		ctx.fill();
 	});
 	var sep = this.separate(neighbors).scale(5 * SEPARATION_WEIGHT);

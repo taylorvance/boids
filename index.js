@@ -216,17 +216,7 @@ Boid.prototype.wrap = function() {
 	else if(this.position.y > canvas.height) this.position.y = 0;
 }
 Boid.prototype.draw = function() {
-	ctx.save();
-	ctx.translate(this.position.x, this.position.y);
-	ctx.rotate(this.velocity.angle2(new Vector(1, 0)));
-	ctx.moveTo(0, -5);
-	ctx.lineTo(2,2);
-	ctx.lineTo(-2,2);
-	ctx.lineTo(0,-5);
-	ctx.stroke();
-	ctx.fillStyle = '#543D5E';
-	ctx.fill();
-	ctx.restore();
+	drawTriangle(this.position, 5, this.velocity.angle2(new Vector(1, 0)), '#543D5E');
 }
 
 
@@ -293,17 +283,7 @@ Fox.prototype.draw = function() {
 	ctx.lineTo(this.position.x + acc.x, this.position.y + acc.y);
 	ctx.stroke();
 	//boid
-	ctx.save(); // saves the coordinate system
-	ctx.translate(this.position.x, this.position.y); // now the position (0,0) is found at (250,50)
-	ctx.rotate(this.velocity.angle2(new Vector(1, 0))); // rotate around the start point of your line
-	ctx.moveTo(0, -8);
-	ctx.lineTo(5,5);
-	ctx.lineTo(-5,5);
-	ctx.lineTo(0,-8);
-	ctx.stroke();
-	ctx.fillStyle = '#f00';
-	ctx.fill();
-	ctx.restore();
+	drawTriangle(this.position, 9, this.velocity.angle2(new Vector(1, 0)), '#f00');
 }
 
 
@@ -323,6 +303,19 @@ function render() {
 	boids.forEach(function(boid){
 		boid.draw();
 	});
+}
+function drawTriangle(center, radius, angle, color) {
+	ctx.save();
+	ctx.translate(center.x, center.y);
+	ctx.rotate(angle);
+	ctx.moveTo(0, -radius);
+	ctx.lineTo(radius / 2, radius / 2);
+	ctx.lineTo(-radius / 2, radius / 2);
+	ctx.lineTo(0,-radius);
+	ctx.stroke();
+	ctx.fillStyle = color || '#543D5E';
+	ctx.fill();
+	ctx.restore();
 }
 
 

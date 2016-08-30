@@ -2,17 +2,18 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 5;
+var SEPARATION_WEIGHT = 7;
 var ALIGNMENT_WEIGHT = 4;
 var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 1;
 var SEEK_WEIGHT = 2;
-var NEIGHBOR_RADIUS = 50;
-var ELBOW_ROOM = 20;
-var MAX_SPEED = 50;
-var MAX_FORCE = 1.5;
+var NEIGHBOR_RADIUS = 150;
+var ELBOW_ROOM = 50;
+var MAX_SPEED = 150;
+var MAX_FORCE = 4;
 var FPS = 30;
 var NUM_BOIDS = 50;
+var TIME_WARP = 1;
 
 
 
@@ -91,7 +92,7 @@ Boid.prototype.tick = function(boids, dt) {
 	// Add acceleration to velocity and velocity to position.
 	acc = acc.limit(this.max_force);
 	this.velocity = this.velocity.add(acc).limit(this.max_speed);
-	this.position = this.position.add(this.velocity.scale(dt));
+	this.position = this.position.add(this.velocity.scale(dt * TIME_WARP));
 
 	this.wrap();
 }
@@ -118,7 +119,7 @@ Boid.prototype.neighbors = function(boids) {
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
 				// Is it in its field of vision?
-				if(this.velocity.angle(boid.position.sub(this.position)) < 3 * Math.PI / 4) {
+				if(this.velocity.angle(boid.position.sub(this.position)) < 0.8 * Math.PI) {
 					neighbors.push(boid);
 				}
 			}
@@ -311,11 +312,11 @@ Red.prototype.draw = function() {
  */
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-canvas.width = 400
-canvas.height = 400
+canvas.width = document.documentElement.clientWidth
+canvas.height = document.documentElement.clientHeight
 function render() {
-	//ctx.fillStyle = 'rgba(255,241,235,0.25)' // '#FFF1EB'
-	ctx.fillStyle = '#FFF1EB'
+	//ctx.fillStyle = 'rgba(255,241,235,0.25)'
+	ctx.fillStyle = '#def'
 	ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 	boids.forEach(function(boid){
@@ -327,11 +328,11 @@ function drawTriangle(center, radius, angle, color) {
 	ctx.translate(center.x, center.y);
 	ctx.rotate(angle);
 	ctx.moveTo(0, -radius);
-	ctx.lineTo(radius / 2, radius / 2);
-	ctx.lineTo(-radius / 2, radius / 2);
+	ctx.lineTo(radius * 0.6, radius * 0.8);
+	ctx.lineTo(-radius * 0.6, radius * 0.8);
 	ctx.lineTo(0,-radius);
 	ctx.stroke();
-	ctx.fillStyle = color || '#543D5E';
+	ctx.fillStyle = color || '#fed';
 	ctx.fill();
 	ctx.restore();
 }

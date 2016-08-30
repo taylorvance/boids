@@ -10,7 +10,7 @@ var SEEK_WEIGHT = 2;
 var NEIGHBOR_RADIUS = 50;
 var ELBOW_ROOM = 20;
 var MAX_SPEED = 50;
-var MAX_FORCE = 2;
+var MAX_FORCE = 1.5;
 var FPS = 30;
 var NUM_BOIDS = 50;
 
@@ -82,16 +82,17 @@ function Boid(opts) {
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
 
+	// Calculate force.
 	var acc = new Vector;
 	acc = acc.add(this.flock(boids));
 	//acc = acc.add(this.seek(mouse).scale(SEEK_WEIGHT));
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
+	// Add acceleration to velocity and velocity to position.
 	acc = acc.limit(this.max_force);
-
 	this.velocity = this.velocity.add(acc).limit(this.max_speed);
-
 	this.position = this.position.add(this.velocity.scale(dt));
+
 	this.wrap();
 }
 Boid.prototype.flock = function(boids) {
@@ -117,9 +118,9 @@ Boid.prototype.neighbors = function(boids) {
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
 				// Is it in its field of vision?
-				//if(this.velocity.angle(boid.position.sub(this.position)) < Math.PI / 2) {
+				if(this.velocity.angle(boid.position.sub(this.position)) < 3 * Math.PI / 4) {
 					neighbors.push(boid);
-				//}
+				}
 			}
 		}
 	}, this);
@@ -294,6 +295,13 @@ Red.prototype.draw = function() {
 	ctx.stroke();
 	//boid
 	drawTriangle(this.position, 9, this.velocity.angle2(new Vector(1, 0)), '#f00');
+	//neighborhood
+/*
+	ctx.strokeStyle = '#bbb';
+	ctx.beginPath();
+	ctx.arc(this.position.x, this.position.y, NEIGHBOR_RADIUS, 0, 2 * Math.PI, false);
+	ctx.stroke();
+*/
 }
 
 

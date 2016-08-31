@@ -2,13 +2,12 @@
  * RENDER
  */
 var canvas = document.getElementById('canvas');
+canvas.width = document.documentElement.clientWidth;
+canvas.height = document.documentElement.clientHeight;
 var ctx = canvas.getContext('2d');
-canvas.width = document.documentElement.clientWidth
-canvas.height = document.documentElement.clientHeight
 function render() {
-	//ctx.fillStyle = 'rgba(255,241,235,0.25)'
-	ctx.fillStyle = '#def'
-	ctx.fillRect(0, 0, canvas.width, canvas.height)
+	ctx.fillStyle = '#def';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	boids.forEach(function(boid){
 		boid.draw();

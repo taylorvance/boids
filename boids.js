@@ -41,7 +41,7 @@ Boid.prototype.tick = function(boids, dt) {
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
 	// Add acceleration to velocity and velocity to position.
-	acc = acc.limit(this.max_force);
+	acc = acc.limit(this.max_force).scale(TIME_WARP);
 	this.velocity = this.velocity.add(acc).limit(this.max_speed);
 	this.position = this.position.add(this.velocity.scale(dt * TIME_WARP));
 

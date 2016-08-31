@@ -229,6 +229,10 @@ Boid.prototype.wrap = function() {
 }
 Boid.prototype.draw = function() {
 	drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
+	return;
+	ctx.beginPath();
+	ctx.arc(this.position.x,this.position.y,15,0,2*Math.PI);
+	ctx.fill();
 }
 
 

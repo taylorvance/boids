@@ -19,6 +19,9 @@
 	<canvas id="canvas"></canvas>
 	<div id="config">
 		<button onclick="debug()">debug</button>
+		<button onclick="init()">init</button>
+		<button onclick="play()">play</button>
+		<button onclick="pause()">pause</button>
 		<div>
 			<b>Speed:</b>
 			<label><input type="radio" name="TIME_WARP" value="0.1" onchange="TIME_WARP=this.value"> 10%</label>
@@ -38,6 +41,7 @@
 		</div>
 	</div>
 	<script src="index.js"></script>
+	<script src="demo.js"></script>
 	<script>
 		$("#canvas").mousemove(function(event){ mousemove(event.clientX, event.clientY); });
 	</script>

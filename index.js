@@ -228,7 +228,7 @@ Boid.prototype.wrap = function() {
 	else if(this.position.y > canvas.height) this.position.y = 0;
 }
 Boid.prototype.draw = function() {
-	drawTriangle(this.position, 5, this.velocity.angle2(new Vector(1, 0)), '#543D5E');
+	drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
 }
 
 
@@ -256,7 +256,7 @@ Red.prototype.draw = function() {
 	var neighbors = this.neighbors(boids);
 	neighbors.forEach(function(boid){
 		ctx.beginPath();
-		ctx.arc(boid.position.x, boid.position.y, 7, 0, 2 * Math.PI, false);
+		ctx.arc(boid.position.x, boid.position.y, 15, 0, 2 * Math.PI, false);
 		ctx.fillStyle = 'rgba(255,0,0,0.3)';
 		ctx.fill();
 	});
@@ -295,7 +295,7 @@ Red.prototype.draw = function() {
 	ctx.lineTo(this.position.x + acc.x, this.position.y + acc.y);
 	ctx.stroke();
 	//boid
-	drawTriangle(this.position, 9, this.velocity.angle2(new Vector(1, 0)), '#f00');
+	drawTriangle(this.position, 15, this.velocity.angle2(new Vector(1, 0)), '#f00');
 	//neighborhood
 /*
 	ctx.strokeStyle = '#bbb';

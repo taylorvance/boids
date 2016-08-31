@@ -44,8 +44,6 @@ Boid.prototype.tick = function(boids, dt) {
 	acc = acc.limit(this.max_force).scale(TIME_WARP);
 	this.velocity = this.velocity.add(acc).limit(this.max_speed);
 	this.position = this.position.add(this.velocity.scale(dt * TIME_WARP));
-
-	this.wrap();
 }
 Boid.prototype.flock = function(boids) {
 	var neighbors = this.neighbors(boids);
@@ -155,6 +153,11 @@ Boid.prototype.arrive = function(target) {
 
 	return this.steer(desired);
 }
+
+
+
+//.might belong in demo, but how do we call it?
+//.option to provide additional force functions?
 Boid.prototype.bound = function() {
 	var v = new Vector;
 
@@ -171,10 +174,4 @@ Boid.prototype.bound = function() {
 	else if(this.position.y > y_max) v.y = y_max - this.position.y;
 
 	return v;
-}
-Boid.prototype.wrap = function() {
-	if(this.position.x < 0) this.position.x = canvas.width;
-	else if(this.position.x > canvas.width) this.position.x = 0;
-	if(this.position.y < 0) this.position.y = canvas.height;
-	else if(this.position.y > canvas.height) this.position.y = 0;
 }

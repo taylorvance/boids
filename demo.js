@@ -10,6 +10,7 @@ function render() {
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	boids.forEach(function(boid){
+		boid.wrap();
 		boid.draw();
 	});
 }
@@ -22,6 +23,13 @@ Boid.prototype.draw = function() {
 	return;
 	drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
 }
+Boid.prototype.wrap = function() {
+	if(this.position.x < 0) this.position.x = canvas.width;
+	else if(this.position.x > canvas.width) this.position.x = 0;
+	if(this.position.y < 0) this.position.y = canvas.height;
+	else if(this.position.y > canvas.height) this.position.y = 0;
+}
+
 function drawTriangle(center, radius, angle, color) {
 	ctx.save();
 	ctx.translate(center.x, center.y);

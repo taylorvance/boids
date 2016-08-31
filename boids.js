@@ -14,6 +14,8 @@ var MAX_FORCE = 4;
 var FPS = 30;
 var NUM_BOIDS = 50;
 var TIME_WARP = 1;
+/** How far on each side can you see, in radians? Pi grants full 360º vision. */
+var FIELD_OF_VISION = 0.8 * Math.PI;
 
 
 
@@ -28,8 +30,6 @@ function Boid(opts) {
 
 	this.max_speed = opts.max_speed || MAX_SPEED;
 	this.max_force = opts.max_force || MAX_FORCE;
-
-	this.name = opts.name;
 }
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
@@ -68,7 +68,7 @@ Boid.prototype.neighbors = function(boids) {
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
 				// Is it in its field of vision?
-				if(this.velocity.angle(boid.position.sub(this.position)) < 0.8 * Math.PI) {
+				if(this.velocity.angle(boid.position.sub(this.position)) < FIELD_OF_VISION) {
 					neighbors.push(boid);
 				}
 			}

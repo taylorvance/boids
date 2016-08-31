@@ -4,7 +4,9 @@
 var canvas = document.getElementById('canvas');
 canvas.width = document.documentElement.clientWidth;
 canvas.height = document.documentElement.clientHeight;
+
 var ctx = canvas.getContext('2d');
+
 function render() {
 	ctx.fillStyle = '#def';
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -14,6 +16,7 @@ function render() {
 		boid.draw();
 	});
 }
+
 Boid.prototype.draw = function() {
 	ctx.beginPath();
 	ctx.arc(this.position.x,this.position.y,7,0,2*Math.PI);
@@ -51,7 +54,6 @@ function drawTriangle(center, radius, angle, color) {
  */
 function Red(opts) {
 	Boid.call(this, opts);
-	this.name = 'red';
 }
 Red.prototype = new Boid;
 Red.prototype.draw = function() {

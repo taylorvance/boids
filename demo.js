@@ -13,6 +13,15 @@ function render() {
 		boid.draw();
 	});
 }
+Boid.prototype.draw = function() {
+	ctx.beginPath();
+	ctx.arc(this.position.x,this.position.y,7,0,2*Math.PI);
+	ctx.stroke();
+	ctx.fillStyle = '#fed';
+	ctx.fill();
+	return;
+	drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
+}
 function drawTriangle(center, radius, angle, color) {
 	ctx.save();
 	ctx.translate(center.x, center.y);
@@ -24,6 +33,72 @@ function drawTriangle(center, radius, angle, color) {
 	ctx.stroke();
 	ctx.fillStyle = color || '#fed';
 	ctx.fill();
+	ctx.restore();
+}
+
+
+
+/**
+ * RED (special boid)
+ */
+function Red(opts) {
+	Boid.call(this, opts);
+	this.name = 'red';
+}
+Red.prototype = new Boid;
+Red.prototype.draw = function() {
+	var neighbors = this.neighbors(boids);
+	neighbors.forEach(function(boid){
+		ctx.beginPath();
+		ctx.arc(boid.position.x, boid.position.y, 15, 0, 2 * Math.PI, false);
+		ctx.fillStyle = 'rgba(255,0,0,0.3)';
+		ctx.fill();
+	});
+	var sep = this.separate(neighbors).scale(5 * SEPARATION_WEIGHT);
+	var ali = this.align(neighbors).scale(5 * ALIGNMENT_WEIGHT);
+	var coh = this.cohere(neighbors).scale(5 * COHESION_WEIGHT);
+	var acc = sep.add(ali).add(coh);
+	//velocity
+	ctx.strokeStyle = '#bbb';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + this.velocity.x, this.position.y + this.velocity.y);
+	ctx.stroke();
+	//sep
+	ctx.strokeStyle = '#f00';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + sep.x, this.position.y + sep.y);
+	ctx.stroke();
+	//align
+	ctx.strokeStyle = '#0f0';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + ali.x, this.position.y + ali.y);
+	ctx.stroke();
+	//cohere
+	ctx.strokeStyle = '#00f';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + coh.x, this.position.y + coh.y);
+	ctx.stroke();
+	//acceleration
+	ctx.strokeStyle = '#000';
+	ctx.beginPath();
+	ctx.moveTo(this.position.x, this.position.y);
+	ctx.lineTo(this.position.x + acc.x, this.position.y + acc.y);
+	ctx.stroke();
+	//boid
+	drawTriangle(this.position, 15, this.velocity.angle2(new Vector(1, 0)), '#f00');
+	//neighborhood and elbow room
+	ctx.save();
+	ctx.strokeStyle = '#ccc';
+	ctx.beginPath();
+	ctx.arc(this.position.x, this.position.y, NEIGHBOR_RADIUS, 0, 2 * Math.PI, false);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.arc(this.position.x, this.position.y, ELBOW_ROOM, 0, 2 * Math.PI, false);
+	ctx.stroke();
 	ctx.restore();
 }
 

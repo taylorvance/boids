@@ -18,55 +18,6 @@ var TIME_WARP = 1;
 
 
 /**
- * VECTOR
- */
-function Vector(x, y) {
-	this.x = x || 0;
-	this.y = y || 0;
-}
-Vector.prototype.add = function(v) {
-	return new Vector(this.x + v.x, this.y + v.y);
-}
-Vector.prototype.sub = function(v) {
-	return new Vector(this.x - v.x, this.y - v.y);
-}
-Vector.prototype.scale = function(n) {
-	return new Vector(this.x * n, this.y * n);
-}
-Vector.prototype.magnitude = function() {
-	return Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2));
-}
-Vector.prototype.normalize = function() {
-	return this.scale(1 / this.magnitude());
-}
-Vector.prototype.setMagnitude = function(n) {
-	return this.normalize().scale(n);
-}
-Vector.prototype.limit = function(n) {
-	if(this.magnitude() > n) return this.setMagnitude(n);
-	return this;
-}
-Vector.prototype.distance = function(v) {
-	return v.sub(this).magnitude();
-}
-Vector.prototype.dot = function(v) {
-	return this.x * v.x + this.y * v.y;
-}
-Vector.prototype.angle = function(v) {
-	return Math.acos(this.dot(v) / (this.magnitude() * v.magnitude()));
-}
-Vector.prototype.angle2 = function(v) {
-	var dot = this.dot(v);
-	var det = this.x * v.y - this.y * v.x;
-	return Math.atan2(dot, det);
-}
-Vector.prototype.scalarProjection = function(v) {
-	return v.setMagnitude(this.dot(v));
-}
-
-
-
-/**
  * BOID
  */
 function Boid(opts) {

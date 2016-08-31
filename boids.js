@@ -253,11 +253,14 @@ Red.prototype.draw = function() {
 	ctx.stroke();
 	//boid
 	drawTriangle(this.position, 15, this.velocity.angle2(new Vector(1, 0)), '#f00');
-	//neighborhood
-/*
-	ctx.strokeStyle = '#bbb';
+	//neighborhood and elbow room
+	ctx.save();
+	ctx.strokeStyle = '#ccc';
 	ctx.beginPath();
 	ctx.arc(this.position.x, this.position.y, NEIGHBOR_RADIUS, 0, 2 * Math.PI, false);
 	ctx.stroke();
-*/
+	ctx.beginPath();
+	ctx.arc(this.position.x, this.position.y, ELBOW_ROOM, 0, 2 * Math.PI, false);
+	ctx.stroke();
+	ctx.restore();
 }

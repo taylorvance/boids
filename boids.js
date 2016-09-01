@@ -2,7 +2,7 @@
 /**
  * CONFIG
  */
-var SEPARATION_WEIGHT = 7;
+var SEPARATION_WEIGHT = 5;
 var ALIGNMENT_WEIGHT = 4;
 var COHESION_WEIGHT = 3;
 var BOUND_WEIGHT = 1;
@@ -27,10 +27,10 @@ function Boid(opts) {
 
 	this.position = opts.position || new Vector;
 	this.velocity = opts.velocity || new Vector;
-
-	this.max_speed = opts.max_speed || MAX_SPEED;
-	this.max_force = opts.max_force || MAX_FORCE;
 }
+//.set other prototype vars (and let demo config change them)
+Boid.prototype.max_speed = MAX_SPEED;
+Boid.prototype.max_force = MAX_FORCE;
 Boid.prototype.tick = function(boids, dt) {
 	dt = dt || 1;
 

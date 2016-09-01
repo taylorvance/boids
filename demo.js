@@ -16,35 +16,50 @@ function render() {
 		boid.draw();
 	});
 }
-
-Boid.prototype.draw = function() {
+function drawTriangle(center, radius, angle, color) {
+	ctx.save();
+	ctx.translate(center.x, center.y);
+	ctx.rotate(angle);
 	ctx.beginPath();
-	ctx.arc(this.position.x,this.position.y,7,0,2*Math.PI);
+	ctx.moveTo(0, -radius);
+	ctx.lineTo(radius * 0.6, radius * 0.8);
+	ctx.lineTo(-radius * 0.6, radius * 0.8);
+	ctx.lineTo(0,-radius);
 	ctx.stroke();
-	ctx.fillStyle = '#fed';
+	ctx.fillStyle = color || '#000';
 	ctx.fill();
-	return;
-	drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
+	ctx.restore();
+}
+
+
+
+/**
+ * More Boid prototype
+ */
+Boid.prototype.draw = function() {
+	var doTriangle = true;
+	if(doTriangle) {
+		drawTriangle(this.position, 10, this.velocity.angle2(new Vector(1, 0)), '#fed');
+	} else {
+		//vel
+		ctx.strokeStyle = '#bbb';
+		ctx.beginPath();
+		ctx.moveTo(this.position.x, this.position.y);
+		ctx.lineTo(this.position.x + this.velocity.x/4, this.position.y + this.velocity.y/4);
+		ctx.stroke();
+		//pos
+		ctx.fillStyle = '#fed';
+		ctx.beginPath();
+		ctx.arc(this.position.x,this.position.y,7,0,2*Math.PI);
+		ctx.fill();
+		ctx.stroke();
+	}
 }
 Boid.prototype.wrap = function() {
 	if(this.position.x < 0) this.position.x = canvas.width;
 	else if(this.position.x > canvas.width) this.position.x = 0;
 	if(this.position.y < 0) this.position.y = canvas.height;
 	else if(this.position.y > canvas.height) this.position.y = 0;
-}
-
-function drawTriangle(center, radius, angle, color) {
-	ctx.save();
-	ctx.translate(center.x, center.y);
-	ctx.rotate(angle);
-	ctx.moveTo(0, -radius);
-	ctx.lineTo(radius * 0.6, radius * 0.8);
-	ctx.lineTo(-radius * 0.6, radius * 0.8);
-	ctx.lineTo(0,-radius);
-	ctx.stroke();
-	ctx.fillStyle = color || '#fed';
-	ctx.fill();
-	ctx.restore();
 }
 
 
@@ -61,7 +76,7 @@ Red.prototype.draw = function() {
 	neighbors.forEach(function(boid){
 		ctx.beginPath();
 		ctx.arc(boid.position.x, boid.position.y, 15, 0, 2 * Math.PI, false);
-		ctx.fillStyle = 'rgba(255,0,0,0.3)';
+		ctx.fillStyle = 'rgba(255,0,0,0.2)';
 		ctx.fill();
 	});
 	var sep = this.separate(neighbors).scale(5 * SEPARATION_WEIGHT);
@@ -80,32 +95,42 @@ Red.prototype.draw = function() {
 	ctx.moveTo(this.position.x, this.position.y);
 	ctx.lineTo(this.position.x + sep.x, this.position.y + sep.y);
 	ctx.stroke();
-	//align
+	//ali
 	ctx.strokeStyle = '#0f0';
 	ctx.beginPath();
 	ctx.moveTo(this.position.x, this.position.y);
 	ctx.lineTo(this.position.x + ali.x, this.position.y + ali.y);
 	ctx.stroke();
-	//cohere
+	//coh
 	ctx.strokeStyle = '#00f';
 	ctx.beginPath();
 	ctx.moveTo(this.position.x, this.position.y);
 	ctx.lineTo(this.position.x + coh.x, this.position.y + coh.y);
 	ctx.stroke();
-	//acceleration
+	//acc
 	ctx.strokeStyle = '#000';
 	ctx.beginPath();
 	ctx.moveTo(this.position.x, this.position.y);
 	ctx.lineTo(this.position.x + acc.x, this.position.y + acc.y);
 	ctx.stroke();
-	//boid
-	drawTriangle(this.position, 15, this.velocity.angle2(new Vector(1, 0)), '#f00');
-	//neighborhood and elbow room
+	//BOID
+	var doTriangle = true;
+	if(doTriangle) {
+		drawTriangle(this.position, 15, this.velocity.angle2(new Vector(1, 0)), '#f00');
+	} else {
+		ctx.fillStyle = '#f00';
+		ctx.beginPath();
+		ctx.arc(this.position.x,this.position.y,10,0,2*Math.PI);
+		ctx.fill();
+		ctx.stroke();
+	}
+	//neighborhood
 	ctx.save();
 	ctx.strokeStyle = '#ccc';
 	ctx.beginPath();
 	ctx.arc(this.position.x, this.position.y, NEIGHBOR_RADIUS, 0, 2 * Math.PI, false);
 	ctx.stroke();
+	//elbow room
 	ctx.beginPath();
 	ctx.arc(this.position.x, this.position.y, ELBOW_ROOM, 0, 2 * Math.PI, false);
 	ctx.stroke();
@@ -168,6 +193,7 @@ function mousemove(x, y) {
 var intervalID;
 var lastUpdate;
 function play() {
+	pause();
 	lastUpdate = Date.now();
 	intervalID = setInterval(tick, 1000/FPS);
 }

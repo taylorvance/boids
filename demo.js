@@ -163,7 +163,10 @@ function tick() {
 	lastUpdate = now;
 
 	boids.forEach(function(boid){
-		boid.tick(boids, dt);
+		boid.calc_force(boids);
+	});
+	boids.forEach(function(boid){
+		boid.apply_force(dt);
 	});
 
 	render();

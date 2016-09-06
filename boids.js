@@ -9,7 +9,7 @@ var BOUND_WEIGHT = 1;
 var SEEK_WEIGHT = 2;
 var NEIGHBOR_RADIUS = 150;
 var ELBOW_ROOM = 50;
-var MAX_SPEED = 150;
+var MAX_SPEED = 120;
 var MAX_FORCE = 4;
 var FPS = 30;
 var NUM_BOIDS = 50;
@@ -27,13 +27,12 @@ function Boid(opts) {
 
 	this.position = opts.position || new Vector;
 	this.velocity = opts.velocity || new Vector;
+	this.acceleration = opts.acceleration || new Vector;
 }
 //.set other prototype vars (and let demo config change them)
 Boid.prototype.max_speed = MAX_SPEED;
 Boid.prototype.max_force = MAX_FORCE;
-Boid.prototype.tick = function(boids, dt) {
-	dt = dt || 1;
-
+Boid.prototype.calc_force = function(boids, dt) {
 	// Calculate force.
 	var acc = new Vector;
 	acc = acc.add(this.flock(boids));
@@ -41,8 +40,12 @@ Boid.prototype.tick = function(boids, dt) {
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
 	// Add acceleration to velocity and velocity to position.
-	acc = acc.limit(this.max_force).scale(TIME_WARP);
-	this.velocity = this.velocity.add(acc).limit(this.max_speed);
+	this.acceleration = acc.limit(this.max_force);
+}
+Boid.prototype.apply_force = function(dt) {
+	dt = dt || 1;
+
+	this.velocity = this.velocity.add(this.acceleration).limit(this.max_speed);
 	this.position = this.position.add(this.velocity.scale(dt * TIME_WARP));
 }
 Boid.prototype.flock = function(boids) {

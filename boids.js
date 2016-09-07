@@ -15,7 +15,8 @@ var FPS = 30;
 var NUM_BOIDS = 50;
 var TIME_WARP = 1;
 /** How far on each side can you see, in radians? Pi grants full 360º vision. */
-var FIELD_OF_VISION = 0.8 * Math.PI;
+//var FIELD_OF_VISION = 0.8 * Math.PI;
+var FIELD_OF_VISION = Math.PI;
 
 
 
@@ -71,7 +72,7 @@ Boid.prototype.neighbors = function(boids) {
 			// If it's close-ish, check the actual distance.
 			if(boid.position.distance(this.position) < NEIGHBOR_RADIUS) {
 				// Is it in its field of vision?
-				if(this.velocity.angle(boid.position.sub(this.position)) < FIELD_OF_VISION) {
+				if(FIELD_OF_VISION >= Math.PI || this.velocity.angle(boid.position.sub(this.position)) < FIELD_OF_VISION) {
 					neighbors.push(boid);
 				}
 			}

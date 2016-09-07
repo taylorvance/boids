@@ -10,13 +10,12 @@ var SEEK_WEIGHT = 2;
 var NEIGHBOR_RADIUS = 150;
 var ELBOW_ROOM = 50;
 var MAX_SPEED = 120;
-var MAX_FORCE = 4;
+var MAX_FORCE = 2;
 var FPS = 30;
 var NUM_BOIDS = 50;
 var TIME_WARP = 1;
 /** How far on each side can you see, in radians? Pi grants full 360º vision. */
-//var FIELD_OF_VISION = 0.8 * Math.PI;
-var FIELD_OF_VISION = Math.PI;
+var FIELD_OF_VISION = 0.9 * Math.PI;
 
 
 
@@ -33,24 +32,22 @@ function Boid(opts) {
 //.set other prototype vars (and let demo config change them)
 Boid.prototype.max_speed = MAX_SPEED;
 Boid.prototype.max_force = MAX_FORCE;
-Boid.prototype.calc_force = function(boids, dt) {
-	// Calculate force.
+Boid.prototype.calc_force = function(dt) {
 	var acc = new Vector;
-	acc = acc.add(this.flock(boids));
+	acc = acc.add(this.flock());
 	//acc = acc.add(this.seek(mouse).scale(SEEK_WEIGHT));
 	//acc = acc.add(this.bound().scale(BOUND_WEIGHT));
 
-	// Add acceleration to velocity and velocity to position.
 	this.acceleration = acc.limit(this.max_force);
 }
 Boid.prototype.apply_force = function(dt) {
 	dt = dt || 1;
-
+	// Add acceleration to velocity and velocity to position.
 	this.velocity = this.velocity.add(this.acceleration).limit(this.max_speed);
 	this.position = this.position.add(this.velocity.scale(dt * TIME_WARP));
 }
-Boid.prototype.flock = function(boids) {
-	var neighbors = this.neighbors(boids);
+Boid.prototype.flock = function() {
+	var neighbors = this.neighbors();
 
 	var separation = this.separate(neighbors).scale(SEPARATION_WEIGHT);
 	var alignment = this.align(neighbors).scale(ALIGNMENT_WEIGHT);
@@ -58,10 +55,14 @@ Boid.prototype.flock = function(boids) {
 
 	return separation.add(alignment).add(cohesion);
 }
-Boid.prototype.neighbors = function(boids) {
+Boid.prototype.flockmates = function() {
+	//.need a better way to get boids--maybe Flock class?
+	return boids;
+}
+Boid.prototype.neighbors = function() {
 	var neighbors = [];
 
-	boids.forEach(function(boid){
+	this.flockmates().forEach(function(boid){
 		if(boid == this) return;
 		// Is it within the circle's outer square?
 		if(boid.position.x > this.position.x - NEIGHBOR_RADIUS &&

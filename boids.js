@@ -130,7 +130,6 @@ Boid.prototype.cohere = function(neighbors) {
 		v = v.add(boid.position);
 	}, this);
 
-	// Add the boid's current position.
 	v = v.scale(1 / neighbors.length);
 	return this.arrive(v);
 }
